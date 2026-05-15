@@ -8,11 +8,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -63,6 +63,7 @@ import com.galeopsis.weatherapp.viewmodel.UiEvent
 import com.galeopsis.weatherapp.viewmodel.WeatherUiState
 import androidx.compose.material3.Scaffold
 import com.galeopsis.weatherapp.ui.navigation.AppRoute
+import androidx.compose.foundation.layout.statusBars
 
 @Composable
 fun WeatherRoute(
@@ -87,11 +88,7 @@ fun WeatherRoute(
         onSearch = viewModel::loadByCity,
         onLocationClick = onLocationClick,
         onRefresh = viewModel::refresh,
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+        modifier = Modifier.fillMaxSize()
     )
 }
 
@@ -109,6 +106,7 @@ private fun WeatherScreen(
         refreshing = state.isLoading,
         onRefresh = onRefresh
     )
+    val statusBarTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
     Box(
         modifier = modifier.pullRefresh(pullRefreshState)
@@ -124,7 +122,9 @@ private fun WeatherScreen(
         PullRefreshIndicator(
             refreshing = state.isLoading,
             state = pullRefreshState,
-            modifier = Modifier.align(Alignment.TopCenter)
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = statusBarTopPadding)
         )
     }
 }
@@ -138,11 +138,16 @@ private fun WeatherContent(
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
+    val statusBarTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     var searchText by rememberSaveable { mutableStateOf("") }
 
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState())
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
     ) {
+        Spacer(modifier = Modifier.height(statusBarTopPadding + 12.dp))
+
         SearchPanel(
             value = searchText,
             onValueChange = { searchText = it },
@@ -177,6 +182,8 @@ private fun WeatherContent(
                 Text(text = "Обновление данных…", color = Color.White)
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -516,9 +523,7 @@ private fun WeatherScreenPreview() {
                     onSearch = { _ -> },
                     onLocationClick = {},
                     onRefresh = {},
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }

@@ -4,15 +4,20 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import androidx.core.view.WindowCompat
 import com.galeopsis.weatherapp.ui.WeatherApp
 import com.galeopsis.weatherapp.viewmodel.AppViewModel
 import com.galeopsis.weatherapp.viewmodel.MainViewModel
@@ -42,7 +47,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        applyOrientationPolicy()
+        configureEdgeToEdge()
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -57,6 +63,30 @@ class MainActivity : ComponentActivity() {
 
         if (savedInstanceState == null) {
             requestLocationOrDefault()
+        }
+    }
+
+    private fun configureEdgeToEdge() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+        )
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+            window.isNavigationBarContrastEnforced = false
+        }
+    }
+
+    @SuppressLint("SourceLockedOrientationActivity")
+    private fun applyOrientationPolicy() {
+        requestedOrientation = if (resources.configuration.smallestScreenWidthDp >= 600) {
+            ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
     }
 

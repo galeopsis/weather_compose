@@ -8,9 +8,10 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -45,6 +46,7 @@ import com.galeopsis.weatherapp.ui.theme.WeatherTheme
 import com.galeopsis.weatherapp.viewmodel.SettingsViewModel
 import com.galeopsis.weatherapp.viewmodel.UiEvent
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.statusBars
 
 @Composable
 fun SettingsRoute(
@@ -76,22 +78,25 @@ private fun SettingsScreen(
     onThemeModeClick: (ThemeMode) -> Unit,
     onUnitsClick: (WeatherUnits) -> Unit
 ) {
+    val statusBarTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     var apiKeyInput by rememberSaveable(settings.apiKey) { mutableStateOf(settings.apiKey) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 16.dp)
     ) {
+        Spacer(modifier = Modifier.height(statusBarTopPadding + 16.dp))
+
         Text(
             text = "Настройки",
             color = Color.White,
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         SettingsCard(title = "API-ключ OpenWeatherMap") {
             OutlinedTextField(
@@ -119,6 +124,8 @@ private fun SettingsScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         SettingsCard(title = "Тема") {
             SelectableButtons(
                 values = ThemeMode.entries,
@@ -127,6 +134,8 @@ private fun SettingsScreen(
                 onClick = onThemeModeClick
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         SettingsCard(title = "Единицы измерения") {
             SelectableButtons(
@@ -142,6 +151,8 @@ private fun SettingsScreen(
                 fontSize = 14.sp
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

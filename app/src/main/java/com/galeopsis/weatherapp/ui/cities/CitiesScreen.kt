@@ -4,14 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -71,47 +71,49 @@ private fun CitiesScreen(
     onRemoveCityClick: (String) -> Unit,
     onClearClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Сохранённые города",
-            color = Color.White,
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold
-        )
+    val statusBarTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
-        Spacer(modifier = Modifier.height(16.dp))
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            top = statusBarTopPadding + 16.dp,
+            end = 16.dp,
+            bottom = 16.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Text(
+                text = "Сохранённые города",
+                color = Color.White,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
 
         if (cities.isEmpty()) {
-            EmptyCitiesBlock()
+            item { EmptyCitiesBlock() }
         } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Button(onClick = onClearClick) {
-                    Text(text = "Очистить")
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Button(onClick = onClearClick) {
+                        Text(text = "Очистить")
+                    }
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(
-                    items = cities,
-                    key = { city -> city.lowercase() }
-                ) { city ->
-                    CityRow(
-                        cityName = city,
-                        onCityClick = onCityClick,
-                        onRemoveCityClick = onRemoveCityClick
-                    )
-                }
+            items(
+                items = cities,
+                key = { city -> city.lowercase() }
+            ) { city ->
+                CityRow(
+                    cityName = city,
+                    onCityClick = onCityClick,
+                    onRemoveCityClick = onRemoveCityClick
+                )
             }
         }
     }

@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -32,20 +34,24 @@ fun AboutRoute(versionName: String) {
 
 @Composable
 private fun AboutScreen(versionName: String) {
+    val statusBarTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 16.dp)
     ) {
+        Spacer(modifier = Modifier.height(statusBarTopPadding + 16.dp))
+
         Text(
             text = "О приложении",
             color = Color.White,
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         AboutCard(title = "Версия") {
             Text(
@@ -56,6 +62,8 @@ private fun AboutScreen(versionName: String) {
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         AboutCard(title = "Архитектура") {
             AboutText("MVVM + Jetpack Compose")
             AboutText("StateFlow для состояния экранов")
@@ -65,12 +73,16 @@ private fun AboutScreen(versionName: String) {
             AboutText("Retrofit + OkHttp для сетевых запросов")
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         AboutCard(title = "Экраны") {
             AboutText("Погода — текущие данные, прогноз и swipe refresh")
             AboutText("Города — список сохранённых городов")
             AboutText("Настройки — API-ключ, тема, единицы измерения")
             AboutText("О приложении — версия и краткая информация")
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

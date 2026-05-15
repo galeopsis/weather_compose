@@ -3,6 +3,7 @@ package com.galeopsis.weatherapp.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -22,7 +23,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -53,53 +53,35 @@ fun WeatherApp(
         val navController = rememberNavController()
         val snackbarHostState = remember { SnackbarHostState() }
 
-        Scaffold(
-            containerColor = Color.Transparent,
-            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-            bottomBar = {
-                AppBottomNavigationBar(
-                    currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route,
-                    onRouteClick = { route ->
-                        navController.navigate(route.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                )
-            }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.background_weather_new),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xAA000000),
-                                    Color(0x44000000),
-                                    Color(0xCC000000)
-                                )
-                            )
-                        )
-                )
+        Box(modifier = Modifier.fillMaxSize()) {
+            WeatherBackground()
 
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                containerColor = Color.Transparent,
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+                bottomBar = {
+                    AppBottomNavigationBar(
+                        currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route,
+                        onRouteClick = { route ->
+                            navController.navigate(route.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
+            ) { innerPadding ->
                 NavHost(
                     navController = navController,
                     startDestination = AppRoute.Weather.route,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
                 ) {
                     composable(AppRoute.Weather.route) {
                         WeatherRoute(
@@ -139,6 +121,31 @@ fun WeatherApp(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun WeatherBackground() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.background_weather_new),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xAA000000),
+                            Color(0x44000000),
+                            Color(0xCC000000)
+                        )
+                    )
+                )
+        )
     }
 }
 
