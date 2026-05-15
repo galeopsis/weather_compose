@@ -196,7 +196,7 @@ private fun SearchPanel(
             onValueChange = onValueChange,
             modifier = Modifier.weight(1f),
             singleLine = true,
-            placeholder = { Text(text = "Поиск по названию") },
+            placeholder = { Text(text = "Город...") },
             trailingIcon = {
                 IconButton(onClick = onSearch) {
                     Icon(imageVector = Icons.Default.Search, contentDescription = "Поиск")
