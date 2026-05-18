@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import com.galeopsis.weatherapp.model.AppDatabase
 import com.galeopsis.weatherapp.model.api.WeatherApi
+import com.galeopsis.weatherapp.model.api.SystestNetworkLoggingInterceptor
 import com.galeopsis.weatherapp.model.api.WeatherProxyInterceptor
 import com.galeopsis.weatherapp.model.cities.CitiesRepository
 import com.galeopsis.weatherapp.model.dao.WeatherDao
@@ -18,7 +19,6 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import okhttp3.Cache
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -41,7 +41,8 @@ val apiModule = module {
 val netModule = module {
     single { provideCache(androidApplication()) }
     single { WeatherProxyInterceptor(get()) }
-    single { provideHttpClient(get(), get()) }
+    single { SystestNetworkLoggingInterceptor() }
+    single { provideHttpClient(get(), get(), get()) }
     single { provideGson() }
     single { provideRetrofit(get(), get()) }
 }
@@ -64,16 +65,13 @@ private fun provideCache(application: Application): Cache {
 
 private fun provideHttpClient(
     cache: Cache,
-    weatherProxyInterceptor: WeatherProxyInterceptor
+    weatherProxyInterceptor: WeatherProxyInterceptor,
+    systestNetworkLoggingInterceptor: SystestNetworkLoggingInterceptor
 ): OkHttpClient {
-    val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BASIC
-    }
-
     return OkHttpClient.Builder()
         .cache(cache)
         .addInterceptor(weatherProxyInterceptor)
-        .addInterceptor(loggingInterceptor)
+        .addInterceptor(systestNetworkLoggingInterceptor)
         .build()
 }
 
