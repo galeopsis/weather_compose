@@ -11,9 +11,10 @@ class SettingsRepository(application: Application) {
     private val _settings = MutableStateFlow(readSettings())
     val settings: StateFlow<AppSettings> = _settings.asStateFlow()
 
-    fun saveApiKey(apiKey: String) {
+    fun saveServerSettings(serverUrl: String, serverToken: String) {
         preferences.edit()
-            .putString(KEY_API_KEY, apiKey.trim())
+            .putString(KEY_SERVER_URL, serverUrl.trim())
+            .putString(KEY_SERVER_TOKEN, serverToken.trim())
             .apply()
         refresh()
     }
@@ -42,7 +43,8 @@ class SettingsRepository(application: Application) {
 
     private fun readSettings(): AppSettings {
         return AppSettings(
-            apiKey = preferences.getString(KEY_API_KEY, "").orEmpty(),
+            serverUrl = preferences.getString(KEY_SERVER_URL, "").orEmpty(),
+            serverToken = preferences.getString(KEY_SERVER_TOKEN, "").orEmpty(),
             themeMode = preferences.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name).toEnumOrDefault(ThemeMode.SYSTEM),
             units = preferences.getString(KEY_UNITS, WeatherUnits.METRIC.name).toEnumOrDefault(WeatherUnits.METRIC)
         )
@@ -55,7 +57,8 @@ class SettingsRepository(application: Application) {
 
     private companion object {
         private const val PREFERENCES_NAME = "weather_settings"
-        private const val KEY_API_KEY = "api_key"
+        private const val KEY_SERVER_URL = "server_url"
+        private const val KEY_SERVER_TOKEN = "server_token"
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_UNITS = "units"
     }

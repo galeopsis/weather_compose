@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import com.galeopsis.weatherapp.model.AppDatabase
 import com.galeopsis.weatherapp.model.api.WeatherApi
+import com.galeopsis.weatherapp.model.api.WeatherProxyInterceptor
 import com.galeopsis.weatherapp.model.cities.CitiesRepository
 import com.galeopsis.weatherapp.model.dao.WeatherDao
 import com.galeopsis.weatherapp.model.repository.WeatherRepository
@@ -24,7 +25,7 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-const val BASE_URL = "https://api.openweathermap.org/data/2.5/"
+private const val TECHNICAL_BASE_URL = "http://weather-proxy.local/"
 
 val viewModelModule = module {
     viewModel { AppViewModel(get()) }
@@ -39,7 +40,8 @@ val apiModule = module {
 
 val netModule = module {
     single { provideCache(androidApplication()) }
-    single { provideHttpClient(get()) }
+    single { WeatherProxyInterceptor(get()) }
+    single { provideHttpClient(get(), get()) }
     single { provideGson() }
     single { provideRetrofit(get(), get()) }
 }
@@ -60,13 +62,17 @@ private fun provideCache(application: Application): Cache {
     return Cache(application.cacheDir, cacheSize)
 }
 
-private fun provideHttpClient(cache: Cache): OkHttpClient {
+private fun provideHttpClient(
+    cache: Cache,
+    weatherProxyInterceptor: WeatherProxyInterceptor
+): OkHttpClient {
     val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BASIC
     }
 
     return OkHttpClient.Builder()
         .cache(cache)
+        .addInterceptor(weatherProxyInterceptor)
         .addInterceptor(loggingInterceptor)
         .build()
 }
@@ -79,7 +85,7 @@ private fun provideGson(): Gson {
 
 private fun provideRetrofit(factory: Gson, client: OkHttpClient): Retrofit {
     return Retrofit.Builder()
-        .baseUrl(BASE_URL)
+        .baseUrl(TECHNICAL_BASE_URL)
         .addConverterFactory(GsonConverterFactory.create(factory))
         .client(client)
         .build()

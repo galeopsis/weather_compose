@@ -17,9 +17,9 @@ class SettingsViewModel(
     private val _events = MutableSharedFlow<UiEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<UiEvent> = _events.asSharedFlow()
 
-    fun saveApiKey(apiKey: String) {
-        settingsRepository.saveApiKey(apiKey)
-        _events.tryEmit(UiEvent.ShowSnackbar("API-ключ сохранён"))
+    fun saveServerSettings(serverUrl: String, serverToken: String) {
+        settingsRepository.saveServerSettings(serverUrl, serverToken)
+        _events.tryEmit(UiEvent.ShowSnackbar("Настройки сервера сохранены"))
     }
 
     fun saveThemeMode(themeMode: ThemeMode) {

@@ -3,15 +3,17 @@ package com.galeopsis.weatherapp.ui.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -34,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,8 +48,6 @@ import com.galeopsis.weatherapp.model.settings.WeatherUnits
 import com.galeopsis.weatherapp.ui.theme.WeatherTheme
 import com.galeopsis.weatherapp.viewmodel.SettingsViewModel
 import com.galeopsis.weatherapp.viewmodel.UiEvent
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.statusBars
 
 @Composable
 fun SettingsRoute(
@@ -65,7 +66,7 @@ fun SettingsRoute(
 
     SettingsScreen(
         settings = settings,
-        onSaveApiKey = viewModel::saveApiKey,
+        onSaveServerSettings = viewModel::saveServerSettings,
         onThemeModeClick = viewModel::saveThemeMode,
         onUnitsClick = viewModel::saveUnits
     )
@@ -74,12 +75,13 @@ fun SettingsRoute(
 @Composable
 private fun SettingsScreen(
     settings: AppSettings,
-    onSaveApiKey: (String) -> Unit,
+    onSaveServerSettings: (String, String) -> Unit,
     onThemeModeClick: (ThemeMode) -> Unit,
     onUnitsClick: (WeatherUnits) -> Unit
 ) {
     val statusBarTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    var apiKeyInput by rememberSaveable(settings.apiKey) { mutableStateOf(settings.apiKey) }
+    var serverUrlInput by rememberSaveable(settings.serverUrl) { mutableStateOf(settings.serverUrl) }
+    var serverTokenInput by rememberSaveable(settings.serverToken) { mutableStateOf(settings.serverToken) }
 
     Column(
         modifier = Modifier
@@ -98,29 +100,44 @@ private fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SettingsCard(title = "API-ключ OpenWeatherMap") {
+        SettingsCard(title = "Сервер погоды") {
             OutlinedTextField(
-                value = apiKeyInput,
-                onValueChange = { apiKeyInput = it },
+                value = serverUrlInput,
+                onValueChange = { serverUrlInput = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text(text = "API-ключ") },
+                label = { Text(text = "Адрес сервера") },
+                placeholder = { Text(text = "http://192.168.1.10:5055/") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Uri,
+                    imeAction = ImeAction.Next
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = serverTokenInput,
+                onValueChange = { serverTokenInput = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text(text = "Токен сервера") },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { onSaveApiKey(apiKeyInput) })
+                keyboardActions = KeyboardActions(
+                    onDone = { onSaveServerSettings(serverUrlInput, serverTokenInput) }
+                )
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Если поле пустое, используется ключ из файла apikey.properties, который попадает в BuildConfig.API_KEY.",
+                text = "API-ключ OpenWeatherMap хранится только на сервере. Приложение отправляет на сервер адрес, город или координаты и токен доступа.",
                 color = Color(0xFFB8D7FF),
                 fontSize = 14.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
             Button(
-                onClick = { onSaveApiKey(apiKeyInput) },
+                onClick = { onSaveServerSettings(serverUrlInput, serverTokenInput) },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Сохранить API-ключ")
+                Text(text = "Сохранить настройки сервера")
             }
         }
 
@@ -219,7 +236,7 @@ private fun SettingsScreenPreview() {
         ) {
             SettingsScreen(
                 settings = AppSettings(),
-                onSaveApiKey = {},
+                onSaveServerSettings = { _, _ -> },
                 onThemeModeClick = {},
                 onUnitsClick = {}
             )

@@ -1,6 +1,5 @@
 package com.galeopsis.weatherapp.model.repository
 
-import com.galeopsis.weatherapp.BuildConfig.API_KEY
 import com.galeopsis.weatherapp.model.api.WeatherApi
 import com.galeopsis.weatherapp.model.cities.CitiesRepository
 import com.galeopsis.weatherapp.model.dao.WeatherDao
@@ -16,6 +15,7 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 class WeatherRepository(
     private val weatherApi: WeatherApi,
@@ -30,7 +30,6 @@ class WeatherRepository(
         return withContext(Dispatchers.IO) {
             val requestParams = getRequestParams()
             val current = weatherApi.getWeatherByCityName(
-                appId = requestParams.apiKey,
                 cityName = cityName.trim(),
                 units = requestParams.units
             )
@@ -45,7 +44,6 @@ class WeatherRepository(
         return withContext(Dispatchers.IO) {
             val requestParams = getRequestParams()
             val current = weatherApi.getWeatherByCoordinates(
-                appId = requestParams.apiKey,
                 latitude = latitude,
                 longitude = longitude,
                 units = requestParams.units
@@ -57,10 +55,14 @@ class WeatherRepository(
 
     private fun getRequestParams(): RequestParams {
         val settings = settingsRepository.currentSettings()
-        val apiKey = settings.effectiveApiKey(API_KEY)
-        check(apiKey.isNotBlank()) { "API-ключ не задан. Укажите ключ в настройках или в apikey.properties." }
+        val serverUrl = settings.normalizedServerUrl()
+        val serverToken = settings.normalizedServerToken()
+
+        check(serverUrl.isNotBlank()) { "Адрес сервера не задан. Укажите адрес в настройках." }
+        check(serverUrl.toHttpUrlOrNull() != null) { "Некорректный адрес сервера. Проверьте настройки." }
+        check(serverToken.isNotBlank()) { "Токен сервера не задан. Укажите токен в настройках." }
+
         return RequestParams(
-            apiKey = apiKey,
             units = settings.units.apiValue
         )
     }
@@ -77,7 +79,6 @@ class WeatherRepository(
         val coord = current.coord
         val forecastItems = if (coord != null) {
             val response = weatherApi.getForecast(
-                appId = requestParams.apiKey,
                 latitude = coord.lat.toString(),
                 longitude = coord.lon.toString(),
                 units = requestParams.units
@@ -154,7 +155,6 @@ class WeatherRepository(
     }
 
     private data class RequestParams(
-        val apiKey: String,
         val units: String
     )
 }

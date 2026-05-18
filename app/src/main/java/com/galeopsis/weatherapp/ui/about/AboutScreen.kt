@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -78,7 +78,7 @@ private fun AboutScreen(versionName: String) {
         AboutCard(title = "Экраны") {
             AboutText("Погода — текущие данные, прогноз и swipe refresh")
             AboutText("Города — список сохранённых городов")
-            AboutText("Настройки — API-ключ, тема, единицы измерения")
+            AboutText("Настройки — сервер, токен, тема, единицы измерения")
             AboutText("О приложении — версия и краткая информация")
         }
 

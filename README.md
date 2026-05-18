@@ -8,7 +8,7 @@
 - UI на Jetpack Compose без Fragment/XML в рабочей схеме.
 - `Navigation Compose` для переходов между экранами.
 - `WeatherScreen` — погода, прогноз, поиск, геолокация, swipe refresh.
-- `SettingsScreen` — API-ключ, тема, единицы измерения.
+- `SettingsScreen` — адрес сервера, токен сервера, тема, единицы измерения.
 - `CitiesScreen` — сохранённые города.
 - `AboutScreen` — версия приложения и стек.
 - `StateFlow` для состояния экранов.
@@ -20,29 +20,53 @@
 - Coil Compose для погодных иконок.
 - SharedPreferences-репозитории для настроек и списка городов.
 
-## API key
+## Backend proxy
 
-Ключ можно задать двумя способами.
+Приложение переведено на схему с сервером:
 
-### 1. Через файл сборки
-
-В корне проекта есть файл:
-
-```properties
-apikey.properties
+```text
+Android app -> WeatherProxy -> OpenWeatherMap
 ```
 
-В него можно вписать ключ OpenWeatherMap:
+OpenWeatherMap API-key больше не хранится в приложении и не попадает в APK. Ключ хранится только на сервере Windows. В приложении указываются:
 
-```properties
-my_api_key=ВАШ_КЛЮЧ
+```text
+Адрес сервера
+Токен сервера
 ```
 
-Этот ключ попадает в `BuildConfig.API_KEY`.
+Сервер находится в каталоге:
 
-### 2. Через экран настроек
+```text
+server/WeatherProxy
+```
 
-В приложении откройте экран `Настройки` и сохраните API-ключ. Если поле на экране настроек пустое, используется ключ из `apikey.properties`.
+Инструкция для Windows 11:
+
+```text
+server/WeatherProxy/README_WINDOWS.md
+```
+
+## Настройки приложения
+
+На экране настроек укажите:
+
+```text
+Адрес сервера: http://192.168.1.10:5055/
+Токен сервера: токен из переменной WEATHER_PROXY_TOKEN
+```
+
+Для белого IP:
+
+```text
+Адрес сервера: http://ВАШ_БЕЛЫЙ_IP:5055/
+```
+
+Для HTTPS можно указать:
+
+```text
+https://ваш-домен.example/
+```
 
 ## Единицы измерения
 

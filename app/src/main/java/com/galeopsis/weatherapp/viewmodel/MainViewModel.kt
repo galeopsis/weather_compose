@@ -7,7 +7,6 @@ import com.galeopsis.weatherapp.model.repository.WeatherRepository
 import com.galeopsis.weatherapp.model.repository.WeatherScreenData
 import com.galeopsis.weatherapp.model.settings.SettingsRepository
 import com.galeopsis.weatherapp.utils.toUserMessage
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -16,6 +15,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 
 class MainViewModel(
     private val weatherRepository: WeatherRepository,
@@ -97,9 +97,7 @@ class MainViewModel(
                 }
             }
             .onFailure { throwable ->
-                if (throwable is CancellationException) {
-                    throw throwable
-                }
+                if (throwable is CancellationException) throw throwable
                 _state.update { currentState -> currentState.copy(isLoading = false) }
                 emitMessage(throwable.toUserMessage())
             }

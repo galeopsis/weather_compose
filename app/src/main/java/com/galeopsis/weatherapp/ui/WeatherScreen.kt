@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -63,7 +64,6 @@ import com.galeopsis.weatherapp.viewmodel.UiEvent
 import com.galeopsis.weatherapp.viewmodel.WeatherUiState
 import androidx.compose.material3.Scaffold
 import com.galeopsis.weatherapp.ui.navigation.AppRoute
-import androidx.compose.foundation.layout.statusBars
 
 @Composable
 fun WeatherRoute(

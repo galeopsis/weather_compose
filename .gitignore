@@ -6,3 +6,9 @@ apikey.properties
 .idea/
 *.iml
 .DS_Store
+
+# WeatherProxy local runtime/publish output
+server/WeatherProxy/bin/
+server/WeatherProxy/obj/
+server/WeatherProxy/logs/
+server/WeatherProxy/appsettings.Development.json

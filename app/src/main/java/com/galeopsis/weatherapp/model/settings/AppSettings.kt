@@ -1,12 +1,26 @@
 package com.galeopsis.weatherapp.model.settings
 
 data class AppSettings(
-    val apiKey: String = "",
+    val serverUrl: String = "",
+    val serverToken: String = "",
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val units: WeatherUnits = WeatherUnits.METRIC
 ) {
-    fun effectiveApiKey(defaultApiKey: String): String {
-        return apiKey.trim().ifBlank { defaultApiKey.trim() }
+    fun normalizedServerUrl(): String {
+        val trimmedUrl = serverUrl.trim()
+        if (trimmedUrl.isEmpty()) return ""
+
+        val withScheme = if (trimmedUrl.contains("://")) {
+            trimmedUrl
+        } else {
+            "http://$trimmedUrl"
+        }
+
+        return if (withScheme.endsWith("/")) withScheme else "$withScheme/"
+    }
+
+    fun normalizedServerToken(): String {
+        return serverToken.trim()
     }
 }
 
