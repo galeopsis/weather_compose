@@ -6,6 +6,8 @@ import com.galeopsis.weatherapp.model.repository.ForecastUiItem
 import com.galeopsis.weatherapp.model.repository.WeatherRepository
 import com.galeopsis.weatherapp.model.repository.WeatherScreenData
 import com.galeopsis.weatherapp.model.settings.SettingsRepository
+import com.galeopsis.weatherapp.utils.toUserMessage
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -95,8 +97,11 @@ class MainViewModel(
                 }
             }
             .onFailure { throwable ->
+                if (throwable is CancellationException) {
+                    throw throwable
+                }
                 _state.update { currentState -> currentState.copy(isLoading = false) }
-                emitMessage(throwable.message ?: "Не удалось загрузить погоду")
+                emitMessage(throwable.toUserMessage())
             }
     }
 
