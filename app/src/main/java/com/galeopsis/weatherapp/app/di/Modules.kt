@@ -30,7 +30,7 @@ private const val TECHNICAL_BASE_URL = "http://weather-proxy.local/"
 val viewModelModule = module {
     viewModel { AppViewModel(get()) }
     viewModel { MainViewModel(get(), get()) }
-    viewModel { SettingsViewModel(get()) }
+    viewModel { SettingsViewModel(get(), get()) }
     viewModel { CitiesViewModel(get()) }
 }
 

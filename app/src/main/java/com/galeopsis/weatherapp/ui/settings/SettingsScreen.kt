@@ -1,5 +1,6 @@
 package com.galeopsis.weatherapp.ui.settings
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -55,6 +56,7 @@ fun SettingsRoute(
     snackbarHostState: SnackbarHostState
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val isPairing by viewModel.isPairing.collectAsStateWithLifecycle()
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -66,6 +68,8 @@ fun SettingsRoute(
 
     SettingsScreen(
         settings = settings,
+        isPairing = isPairing,
+        onPairDevice = viewModel::pairDevice,
         onSaveServerSettings = viewModel::saveServerSettings,
         onThemeModeClick = viewModel::saveThemeMode,
         onUnitsClick = viewModel::saveUnits
@@ -75,6 +79,8 @@ fun SettingsRoute(
 @Composable
 private fun SettingsScreen(
     settings: AppSettings,
+    isPairing: Boolean,
+    onPairDevice: (String, String, String) -> Unit,
     onSaveServerSettings: (String, String) -> Unit,
     onThemeModeClick: (ThemeMode) -> Unit,
     onUnitsClick: (WeatherUnits) -> Unit
@@ -82,6 +88,8 @@ private fun SettingsScreen(
     val statusBarTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     var serverUrlInput by rememberSaveable(settings.serverUrl) { mutableStateOf(settings.serverUrl) }
     var serverTokenInput by rememberSaveable(settings.serverToken) { mutableStateOf(settings.serverToken) }
+    var pairingCodeInput by rememberSaveable { mutableStateOf("") }
+    var deviceNameInput by rememberSaveable { mutableStateOf(Build.MODEL.orEmpty().ifBlank { "Android" }) }
 
     Column(
         modifier = Modifier
@@ -107,7 +115,7 @@ private fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 label = { Text(text = "Адрес сервера") },
-                placeholder = { Text(text = "http://192.168.1.10:5055/") },
+                placeholder = { Text(text = "https://example.ru/weather/") },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Uri,
                     imeAction = ImeAction.Next
@@ -115,11 +123,47 @@ private fun SettingsScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
+                value = pairingCodeInput,
+                onValueChange = { pairingCodeInput = it.uppercase() },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text(text = "Код привязки") },
+                placeholder = { Text(text = "A7K9-2PQM") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = deviceNameInput,
+                onValueChange = { deviceNameInput = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text(text = "Имя устройства") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = { onPairDevice(serverUrlInput, pairingCodeInput, deviceNameInput) }
+                )
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = { onPairDevice(serverUrlInput, pairingCodeInput, deviceNameInput) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isPairing
+            ) {
+                Text(text = if (isPairing) "Привязка..." else "Привязать устройство")
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Код привязки создаётся на сервере администратором и используется один раз. После успешной привязки приложение получает персональный токен устройства.",
+                color = Color(0xFFB8D7FF),
+                fontSize = 14.sp
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
                 value = serverTokenInput,
                 onValueChange = { serverTokenInput = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text(text = "Токен сервера") },
+                label = { Text(text = "Токен устройства") },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
@@ -128,7 +172,7 @@ private fun SettingsScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "API-ключ OpenWeatherMap хранится только на сервере. Приложение отправляет на сервер адрес, город или координаты и токен доступа.",
+                text = "Поле токена нужно только для ручного ввода или переноса уже привязанного устройства. Обычно достаточно указать адрес сервера и код привязки.",
                 color = Color(0xFFB8D7FF),
                 fontSize = 14.sp
             )
@@ -137,7 +181,7 @@ private fun SettingsScreen(
                 onClick = { onSaveServerSettings(serverUrlInput, serverTokenInput) },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Сохранить настройки сервера")
+                Text(text = "Сохранить адрес и токен")
             }
         }
 
@@ -236,6 +280,8 @@ private fun SettingsScreenPreview() {
         ) {
             SettingsScreen(
                 settings = AppSettings(),
+                isPairing = false,
+                onPairDevice = { _, _, _ -> },
                 onSaveServerSettings = { _, _ -> },
                 onThemeModeClick = {},
                 onUnitsClick = {}
