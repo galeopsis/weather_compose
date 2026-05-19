@@ -64,14 +64,46 @@ class SystestNetworkLoggingInterceptor : Interceptor {
             body.writeTo(buffer)
 
             val charset = body.contentType()?.charset(DEFAULT_CHARSET) ?: DEFAULT_CHARSET
-            buffer.readString(charset).ifBlank { NULL_BODY }
+            val rawBody = buffer.readString(charset).ifBlank { NULL_BODY }
+
+            rawBody.maskSensitiveFields()
         }.getOrDefault(NULL_BODY)
+    }
+
+    private fun String.maskSensitiveFields(): String {
+        if (isBlank() || this == NULL_BODY) {
+            return this
+        }
+
+        var masked = this
+
+        SENSITIVE_JSON_FIELDS.forEach { fieldName ->
+            val regex = Regex(
+                pattern = """("$fieldName"\s*:\s*")([^"]*)(")""",
+                options = setOf(RegexOption.IGNORE_CASE)
+            )
+
+            masked = regex.replace(masked) { matchResult ->
+                "${matchResult.groupValues[1]}$MASKED_VALUE${matchResult.groupValues[3]}"
+            }
+        }
+
+        return masked
     }
 
     private companion object {
         private const val TAG = "systest"
         private const val APP_NAME = "WeatherApp"
         private const val NULL_BODY = "null"
+        private const val MASKED_VALUE = "***"
         private val DEFAULT_CHARSET: Charset = Charsets.UTF_8
+
+        private val SENSITIVE_JSON_FIELDS = listOf(
+            "pairingCode",
+            "token",
+            "serverToken",
+            "accessToken",
+            "refreshToken"
+        )
     }
 }
