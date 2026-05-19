@@ -60,7 +60,7 @@ class WeatherRepository(
 
         check(serverUrl.isNotBlank()) { "Адрес сервера не задан. Укажите адрес в настройках." }
         check(serverUrl.toHttpUrlOrNull() != null) { "Некорректный адрес сервера. Проверьте настройки." }
-        check(serverToken.isNotBlank()) { "Токен устройства не задан. Выполните привязку в настройках." }
+        check(serverToken.isNotBlank()) { "Устройство не привязано. Выполните привязку в настройках." }
 
         return RequestParams(
             units = settings.units.apiValue

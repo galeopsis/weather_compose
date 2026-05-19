@@ -24,7 +24,7 @@ class WeatherProxyInterceptor(
         val isPairingRequest = originalUrl.encodedPath == PAIRING_PATH
 
         if (!isPairingRequest) {
-            check(token.isNotBlank()) { "Токен устройства не задан. Выполните привязку в настройках." }
+            check(token.isNotBlank()) { "Устройство не привязано. Выполните привязку в настройках." }
         }
 
         val targetUrlBuilder = baseUrl.newBuilder()

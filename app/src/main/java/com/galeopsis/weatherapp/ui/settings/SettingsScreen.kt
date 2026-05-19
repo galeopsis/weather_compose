@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -38,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,7 +70,7 @@ fun SettingsRoute(
         settings = settings,
         isPairing = isPairing,
         onPairDevice = viewModel::pairDevice,
-        onSaveServerSettings = viewModel::saveServerSettings,
+        onSaveServerUrl = viewModel::saveServerUrl,
         onThemeModeClick = viewModel::saveThemeMode,
         onUnitsClick = viewModel::saveUnits
     )
@@ -81,15 +81,15 @@ private fun SettingsScreen(
     settings: AppSettings,
     isPairing: Boolean,
     onPairDevice: (String, String, String) -> Unit,
-    onSaveServerSettings: (String, String) -> Unit,
+    onSaveServerUrl: (String) -> Unit,
     onThemeModeClick: (ThemeMode) -> Unit,
     onUnitsClick: (WeatherUnits) -> Unit
 ) {
     val statusBarTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val deviceName = remember { defaultDeviceName() }
+    val isDevicePaired = settings.serverToken.isNotBlank()
     var serverUrlInput by rememberSaveable(settings.serverUrl) { mutableStateOf(settings.serverUrl) }
-    var serverTokenInput by rememberSaveable(settings.serverToken) { mutableStateOf(settings.serverToken) }
     var pairingCodeInput by rememberSaveable { mutableStateOf("") }
-    var deviceNameInput by rememberSaveable { mutableStateOf(Build.MODEL.orEmpty().ifBlank { "Android" }) }
 
     Column(
         modifier = Modifier
@@ -118,10 +118,30 @@ private fun SettingsScreen(
                 placeholder = { Text(text = "https://example.ru/weather/") },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Uri,
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { onSaveServerUrl(serverUrlInput) }
                 )
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = { onSaveServerUrl(serverUrlInput) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Сохранить адрес сервера")
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = if (isDevicePaired) {
+                    "Статус: устройство привязано. Токен хранится внутри приложения и не отображается."
+                } else {
+                    "Статус: устройство не привязано. Создайте одноразовый код на сервере и введите его ниже."
+                },
+                color = Color(0xFFB8D7FF),
+                fontSize = 14.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
                 value = pairingCodeInput,
                 onValueChange = { pairingCodeInput = it.uppercase() },
@@ -129,23 +149,14 @@ private fun SettingsScreen(
                 singleLine = true,
                 label = { Text(text = "Код привязки") },
                 placeholder = { Text(text = "A7K9-2PQM") },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = deviceNameInput,
-                onValueChange = { deviceNameInput = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text(text = "Имя устройства") },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
-                    onDone = { onPairDevice(serverUrlInput, pairingCodeInput, deviceNameInput) }
+                    onDone = { onPairDevice(serverUrlInput, pairingCodeInput, deviceName) }
                 )
             )
             Spacer(modifier = Modifier.height(12.dp))
             Button(
-                onClick = { onPairDevice(serverUrlInput, pairingCodeInput, deviceNameInput) },
+                onClick = { onPairDevice(serverUrlInput, pairingCodeInput, deviceName) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isPairing
             ) {
@@ -153,36 +164,10 @@ private fun SettingsScreen(
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Код привязки создаётся на сервере администратором и используется один раз. После успешной привязки приложение получает персональный токен устройства.",
+                text = "Код создаётся администратором на сервере и используется один раз. Имя устройства определяется автоматически и нужно только для списка устройств на сервере. Если доступ устройства отозван на сервере, создайте новый код и выполните привязку заново.",
                 color = Color(0xFFB8D7FF),
                 fontSize = 14.sp
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = serverTokenInput,
-                onValueChange = { serverTokenInput = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text(text = "Токен устройства") },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = { onSaveServerSettings(serverUrlInput, serverTokenInput) }
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Поле токена нужно только для ручного ввода или переноса уже привязанного устройства. Обычно достаточно указать адрес сервера и код привязки.",
-                color = Color(0xFFB8D7FF),
-                fontSize = 14.sp
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Button(
-                onClick = { onSaveServerSettings(serverUrlInput, serverTokenInput) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "Сохранить адрес и токен")
-            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -215,6 +200,16 @@ private fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
     }
+}
+
+private fun defaultDeviceName(): String {
+    val manufacturer = Build.MANUFACTURER.orEmpty().trim()
+    val model = Build.MODEL.orEmpty().trim()
+
+    return listOf(manufacturer, model)
+        .filter { it.isNotBlank() }
+        .joinToString(separator = " ")
+        .ifBlank { "Android" }
 }
 
 @Composable
@@ -282,7 +277,7 @@ private fun SettingsScreenPreview() {
                 settings = AppSettings(),
                 isPairing = false,
                 onPairDevice = { _, _, _ -> },
-                onSaveServerSettings = { _, _ -> },
+                onSaveServerUrl = {},
                 onThemeModeClick = {},
                 onUnitsClick = {}
             )

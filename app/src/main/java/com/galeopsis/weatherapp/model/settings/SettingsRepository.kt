@@ -11,9 +11,23 @@ class SettingsRepository(application: Application) {
     private val _settings = MutableStateFlow(readSettings())
     val settings: StateFlow<AppSettings> = _settings.asStateFlow()
 
+    fun saveServerUrl(serverUrl: String) {
+        preferences.edit()
+            .putString(KEY_SERVER_URL, serverUrl.trim())
+            .apply()
+        refresh()
+    }
+
     fun saveServerSettings(serverUrl: String, serverToken: String) {
         preferences.edit()
             .putString(KEY_SERVER_URL, serverUrl.trim())
+            .putString(KEY_SERVER_TOKEN, serverToken.trim())
+            .apply()
+        refresh()
+    }
+
+    fun saveDeviceToken(serverToken: String) {
+        preferences.edit()
             .putString(KEY_SERVER_TOKEN, serverToken.trim())
             .apply()
         refresh()

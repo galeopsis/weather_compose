@@ -47,10 +47,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             _isPairing.value = true
             try {
-                settingsRepository.saveServerSettings(
-                    serverUrl = normalizedServerUrl,
-                    serverToken = settingsRepository.currentSettings().serverToken
-                )
+                settingsRepository.saveServerUrl(normalizedServerUrl)
 
                 val response = weatherApi.pairDevice(
                     PairDeviceRequest(
@@ -59,10 +56,7 @@ class SettingsViewModel(
                     )
                 )
 
-                settingsRepository.saveServerSettings(
-                    serverUrl = normalizedServerUrl,
-                    serverToken = response.token
-                )
+                settingsRepository.saveDeviceToken(response.token)
                 _events.emit(UiEvent.ShowSnackbar("Устройство привязано"))
             } catch (throwable: Throwable) {
                 _events.emit(UiEvent.ShowSnackbar(throwable.toUserMessage()))
@@ -72,9 +66,9 @@ class SettingsViewModel(
         }
     }
 
-    fun saveServerSettings(serverUrl: String, serverToken: String) {
-        settingsRepository.saveServerSettings(serverUrl, serverToken)
-        _events.tryEmit(UiEvent.ShowSnackbar("Настройки сервера сохранены"))
+    fun saveServerUrl(serverUrl: String) {
+        settingsRepository.saveServerUrl(serverUrl)
+        _events.tryEmit(UiEvent.ShowSnackbar("Адрес сервера сохранён"))
     }
 
     fun saveThemeMode(themeMode: ThemeMode) {
